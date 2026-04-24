@@ -1205,6 +1205,15 @@ img.section-media {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
 }
 
+.panel-tabs button.active *,
+.hide-admin-button *,
+.show-admin-button *,
+.lock-admin-button * {
+  color: inherit !important;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
 .panel-scroll {
   display: grid;
   align-content: start;
@@ -1525,6 +1534,32 @@ input[type="range"] {
 
 .admin-panel button:not(.show-admin-button) {
   color: #ffffff;
+}
+
+.admin-panel .panel-tabs button,
+.admin-panel .hide-admin-button,
+.admin-panel .show-admin-button,
+.admin-panel .lock-admin-button,
+.admin-panel .reset-action,
+.admin-panel .wide-action,
+.admin-panel .action-row button,
+.admin-panel .card-title-row button,
+.admin-panel .item-toolbar button,
+.admin-panel .section-row > button:not(.section-main) {
+  color: #ffffff !important;
+}
+
+.admin-panel .panel-tabs button.active,
+.admin-panel .hide-admin-button {
+  color: #111111 !important;
+}
+
+.admin-panel .panel-tabs button.active svg,
+.admin-panel .hide-admin-button svg,
+.admin-panel .show-admin-button svg,
+.admin-panel .lock-admin-button svg {
+  color: inherit !important;
+  stroke: currentColor !important;
 }
 
 .item-editor {
