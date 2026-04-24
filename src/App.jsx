@@ -1203,7 +1203,7 @@ function App() {
                 />
               </label>
               {adminPasswordError && <p className="admin-error">{adminPasswordError}</p>}
-              <button className="wide-action" type="submit">
+              <button className="wide-action unlock-admin-button" type="submit">
                 Unlock admin
               </button>
             </div>

@@ -1554,6 +1554,16 @@ input[type="range"] {
   color: #111111 !important;
 }
 
+.admin-panel .unlock-admin-button {
+  color: #111111 !important;
+  background: #ffffff !important;
+  box-shadow: 0 14px 34px rgba(255, 255, 255, 0.16);
+}
+
+.admin-panel .unlock-admin-button:hover {
+  filter: brightness(0.97);
+}
+
 .admin-panel .panel-tabs button.active svg,
 .admin-panel .hide-admin-button svg,
 .admin-panel .show-admin-button svg,
