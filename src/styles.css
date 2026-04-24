@@ -1074,7 +1074,8 @@ img.section-media {
 }
 
 .show-admin-button,
-.hide-admin-button {
+.hide-admin-button,
+.lock-admin-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1104,8 +1105,18 @@ img.section-media {
   box-shadow: 0 10px 28px rgba(255, 255, 255, 0.14);
 }
 
+.lock-admin-button {
+  padding: 0 14px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .hide-admin-button:hover {
   filter: brightness(0.96);
+}
+
+.lock-admin-button:hover {
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .admin-heading-actions {
@@ -1113,6 +1124,15 @@ img.section-media {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+}
+
+.admin-lock-panel {
+  display: flex !important;
+}
+
+.admin-error {
+  color: #ff8e5a !important;
+  font-weight: 900;
 }
 
 .admin-heading {

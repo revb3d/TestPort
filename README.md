@@ -15,6 +15,16 @@ Build for production:
 npm run build
 ```
 
+## Admin password
+
+To protect the admin panel on a deployed site, set:
+
+```bash
+VITE_ADMIN_PASSWORD=your-password
+```
+
+For local development, copy `.env.example` to `.env` and change the value. On Vercel, add `VITE_ADMIN_PASSWORD` in Project Settings -> Environment Variables.
+
 ## What You Can Customize
 
 - Identity details: name, role, location, email, and availability.

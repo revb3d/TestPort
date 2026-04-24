@@ -20,6 +20,9 @@ import {
 } from "lucide-react";
 import { loadStoredPortfolio, saveStoredPortfolio } from "./storage.js";
 
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD?.trim() ?? "";
+const ADMIN_UNLOCK_KEY = "portfolio-studio-admin-unlocked";
+
 const sectionTypes = [
   "hero",
   "about",
@@ -539,6 +542,16 @@ function App() {
   const [selectedId, setSelectedId] = useState(portfolio.sections[0]?.id ?? "");
   const [activePanel, setActivePanel] = useState("sections");
   const [adminHidden, setAdminHidden] = useState(false);
+  const [adminUnlocked, setAdminUnlocked] = useState(() => {
+    if (!ADMIN_PASSWORD) return true;
+    try {
+      return globalThis.sessionStorage?.getItem(ADMIN_UNLOCK_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
+  const [adminPasswordInput, setAdminPasswordInput] = useState("");
+  const [adminPasswordError, setAdminPasswordError] = useState("");
   const [importValue, setImportValue] = useState("");
   const [notice, setNotice] = useState("Saved automatically");
   const [isReadyToPersist, setIsReadyToPersist] = useState(false);
@@ -882,6 +895,39 @@ function App() {
     setNotice("Reset to starter content");
   }
 
+  function unlockAdmin(event) {
+    event.preventDefault();
+    if (!ADMIN_PASSWORD) {
+      setAdminUnlocked(true);
+      return;
+    }
+
+    if (adminPasswordInput === ADMIN_PASSWORD) {
+      setAdminUnlocked(true);
+      setAdminPasswordError("");
+      setAdminPasswordInput("");
+      try {
+        globalThis.sessionStorage?.setItem(ADMIN_UNLOCK_KEY, "true");
+      } catch {
+        // Ignore sessionStorage failures.
+      }
+      return;
+    }
+
+    setAdminPasswordError("Incorrect password");
+  }
+
+  function lockAdmin() {
+    if (!ADMIN_PASSWORD) return;
+    setAdminUnlocked(false);
+    setAdminHidden(false);
+    try {
+      globalThis.sessionStorage?.removeItem(ADMIN_UNLOCK_KEY);
+    } catch {
+      // Ignore sessionStorage failures.
+    }
+  }
+
   return (
     <main className={`studio-shell ${adminHidden ? "admin-is-hidden" : ""}`}>
       <PortfolioPreview
@@ -893,14 +939,45 @@ function App() {
         }}
       />
 
-      {adminHidden && (
+      {adminHidden && adminUnlocked && (
         <button className="show-admin-button" onClick={() => setAdminHidden(false)}>
           <PanelRightOpen size={17} />
           Show admin
         </button>
       )}
 
-      <aside className="admin-panel" aria-label="Portfolio admin panel" aria-hidden={adminHidden}>
+      {!adminUnlocked && ADMIN_PASSWORD && (
+        <aside className="admin-panel admin-lock-panel" aria-label="Admin login">
+          <div className="admin-heading">
+            <div>
+              <p className="admin-kicker">Admin Locked</p>
+              <h1>Enter password</h1>
+            </div>
+          </div>
+          <form className="panel-scroll" onSubmit={unlockAdmin}>
+            <div className="tool-card">
+              <p>The live editor is protected. Enter the admin password to unlock customization tools.</p>
+              <label>
+                Password
+                <input
+                  type="password"
+                  value={adminPasswordInput}
+                  onChange={(event) => {
+                    setAdminPasswordInput(event.target.value);
+                    setAdminPasswordError("");
+                  }}
+                />
+              </label>
+              {adminPasswordError && <p className="admin-error">{adminPasswordError}</p>}
+              <button className="wide-action" type="submit">
+                Unlock admin
+              </button>
+            </div>
+          </form>
+        </aside>
+      )}
+
+      <aside className="admin-panel" aria-label="Portfolio admin panel" aria-hidden={adminHidden || !adminUnlocked}>
         <div className="admin-heading">
           <div>
             <p className="admin-kicker">Admin Studio</p>
@@ -911,6 +988,11 @@ function App() {
               <Save size={14} />
               {notice}
             </span>
+            {ADMIN_PASSWORD && (
+              <button className="lock-admin-button" onClick={lockAdmin}>
+                Lock
+              </button>
+            )}
             <button className="hide-admin-button" onClick={() => setAdminHidden(true)}>
               <PanelRightClose size={16} />
               Hide
