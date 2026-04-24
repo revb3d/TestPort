@@ -541,7 +541,7 @@ function App() {
   const [portfolio, setPortfolio] = useState(() => clonePortfolio(defaultPortfolio));
   const [selectedId, setSelectedId] = useState(portfolio.sections[0]?.id ?? "");
   const [activePanel, setActivePanel] = useState("sections");
-  const [adminHidden, setAdminHidden] = useState(false);
+  const [adminHidden, setAdminHidden] = useState(true);
   const [adminUnlocked, setAdminUnlocked] = useState(() => {
     if (!ADMIN_PASSWORD) return true;
     try {
@@ -939,14 +939,14 @@ function App() {
         }}
       />
 
-      {adminHidden && adminUnlocked && (
+      {adminHidden && (
         <button className="show-admin-button" onClick={() => setAdminHidden(false)}>
           <PanelRightOpen size={17} />
-          Show admin
+          {adminUnlocked || !ADMIN_PASSWORD ? "Show admin" : "Admin"}
         </button>
       )}
 
-      {!adminUnlocked && ADMIN_PASSWORD && (
+      {!adminHidden && !adminUnlocked && ADMIN_PASSWORD && (
         <aside className="admin-panel admin-lock-panel" aria-label="Admin login">
           <div className="admin-heading">
             <div>
