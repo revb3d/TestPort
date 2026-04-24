@@ -2,6 +2,22 @@
 
 A customizable portfolio builder with a live admin panel. The portfolio is rendered from editable data, so you can change the theme, text, fonts, section order, visibility, and nested content without touching code.
 
+## Shared backend
+
+To make edits save for everyone, configure these Vercel environment variables and redeploy:
+
+```env
+ADMIN_PASSWORD=your-admin-password
+ADMIN_SESSION_SECRET=a-long-random-secret
+BLOB_READ_WRITE_TOKEN=your-vercel-blob-read-write-token
+```
+
+Notes:
+- `ADMIN_PASSWORD` protects the live admin panel.
+- `ADMIN_SESSION_SECRET` signs the admin cookie on the server.
+- `BLOB_READ_WRITE_TOKEN` stores the shared portfolio config in Vercel Blob.
+- `VITE_ADMIN_PASSWORD` is now only a local fallback when you run plain `npm run dev`.
+
 ## Run locally
 
 ```bash
@@ -20,10 +36,10 @@ npm run build
 To protect the admin panel on a deployed site, set:
 
 ```bash
-VITE_ADMIN_PASSWORD=your-password
+ADMIN_PASSWORD=your-password
 ```
 
-For local development, copy `.env.example` to `.env` and change the value. On Vercel, add `VITE_ADMIN_PASSWORD` in Project Settings -> Environment Variables.
+For local development, copy `.env.example` to `.env` and change the value. On Vercel, add `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, and `BLOB_READ_WRITE_TOKEN` in Project Settings -> Environment Variables.
 
 ## What You Can Customize
 
@@ -36,6 +52,6 @@ For local development, copy `.env.example` to `.env` and change the value. On Ve
 - Structure helpers: duplicate sections, hide/show them, and reorder them quickly.
 - Page enhancements: add a site-wide background image/video layer with opacity and blur controls, and customize a footer CTA area.
 - Data portability: export the portfolio configuration as JSON and import it later.
+- Shared persistence: when Vercel Blob is configured, edits save to the backend so the live site stays in sync.
 
-Changes are saved automatically in your browser with `localStorage`. Imported media is stored as data URLs, which is convenient for quick local editing and JSON export. Very large videos can exceed browser storage limits, so shorter clips or compressed images work best.
-"# TestPort" 
+Local development still keeps a browser fallback using IndexedDB so plain `npm run dev` works without the backend. On deployed Vercel environments, the app prefers the shared backend automatically.

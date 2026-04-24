@@ -18,10 +18,13 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { loadStoredPortfolio, saveStoredPortfolio } from "./storage.js";
-
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD?.trim() ?? "";
-const ADMIN_UNLOCK_KEY = "portfolio-studio-admin-unlocked";
+import {
+  getAdminSessionState,
+  loadStoredPortfolio,
+  lockAdminSession,
+  saveStoredPortfolio,
+  unlockAdminSession,
+} from "./storage.js";
 
 const sectionTypes = [
   "hero",
@@ -542,18 +545,18 @@ function App() {
   const [selectedId, setSelectedId] = useState(portfolio.sections[0]?.id ?? "");
   const [activePanel, setActivePanel] = useState("sections");
   const [adminHidden, setAdminHidden] = useState(true);
-  const [adminUnlocked, setAdminUnlocked] = useState(() => {
-    if (!ADMIN_PASSWORD) return true;
-    try {
-      return globalThis.sessionStorage?.getItem(ADMIN_UNLOCK_KEY) === "true";
-    } catch {
-      return false;
-    }
+  const [adminAuth, setAdminAuth] = useState({
+    loading: true,
+    source: "none",
+    enabled: false,
+    authenticated: true,
+    storageConfigured: false,
   });
+  const [adminUnlocked, setAdminUnlocked] = useState(true);
   const [adminPasswordInput, setAdminPasswordInput] = useState("");
   const [adminPasswordError, setAdminPasswordError] = useState("");
   const [importValue, setImportValue] = useState("");
-  const [notice, setNotice] = useState("Saved automatically");
+  const [notice, setNotice] = useState("Loading settings...");
   const [isReadyToPersist, setIsReadyToPersist] = useState(false);
   const isFirstPersist = useRef(true);
 
@@ -565,20 +568,37 @@ function App() {
   useEffect(() => {
     let cancelled = false;
 
-    async function hydratePortfolio() {
-      const stored = await loadStoredPortfolio();
+    async function hydrateStudio() {
+      const [stored, session] = await Promise.all([
+        loadStoredPortfolio(),
+        getAdminSessionState(),
+      ]);
       if (cancelled) return;
 
-      if (stored) {
-        const normalized = normalizePortfolio(stored);
+      setAdminAuth({
+        ...session,
+        loading: false,
+      });
+      setAdminUnlocked(session.authenticated);
+
+      if (stored.value) {
+        const normalized = normalizePortfolio(stored.value);
         setPortfolio(normalized);
         setSelectedId(normalized.sections[0]?.id ?? "");
+      }
+
+      if (stored.storage === "remote") {
+        setNotice("Connected to shared backend");
+      } else if (stored.storage === "local") {
+        setNotice("Using local draft storage");
+      } else {
+        setNotice("Ready to save");
       }
 
       setIsReadyToPersist(true);
     }
 
-    hydratePortfolio();
+    hydrateStudio();
 
     return () => {
       cancelled = true;
@@ -596,15 +616,17 @@ function App() {
 
     async function persistPortfolio() {
       try {
-        await saveStoredPortfolio(portfolio);
+        const result = await saveStoredPortfolio(portfolio);
         if (!cancelled) {
-          setNotice("Saved automatically");
+          setNotice(result.storage === "remote" ? "Saved to shared backend" : "Saved locally");
         }
       } catch (error) {
         if (!cancelled) {
-          const message = error?.name === "QuotaExceededError"
-            ? "This file is too large to autosave. Try a shorter/compressed video."
-            : "Autosave failed";
+          const message = error?.code === "AUTH_REQUIRED"
+            ? "Admin session expired. Unlock admin again."
+            : error?.code === "PAYLOAD_TOO_LARGE" || error?.name === "QuotaExceededError"
+              ? "This file is too large to autosave. Try a shorter/compressed video."
+              : error?.message || "Autosave failed";
           setNotice(message);
         }
       }
@@ -895,37 +917,32 @@ function App() {
     setNotice("Reset to starter content");
   }
 
-  function unlockAdmin(event) {
+  async function unlockAdmin(event) {
     event.preventDefault();
-    if (!ADMIN_PASSWORD) {
-      setAdminUnlocked(true);
-      return;
-    }
 
-    if (adminPasswordInput === ADMIN_PASSWORD) {
-      setAdminUnlocked(true);
+    try {
+      const session = await unlockAdminSession(adminPasswordInput);
+      setAdminAuth((current) => ({
+        ...current,
+        ...session,
+        loading: false,
+      }));
+      setAdminUnlocked(session.authenticated);
       setAdminPasswordError("");
       setAdminPasswordInput("");
-      try {
-        globalThis.sessionStorage?.setItem(ADMIN_UNLOCK_KEY, "true");
-      } catch {
-        // Ignore sessionStorage failures.
-      }
-      return;
+      setNotice(session.source === "server" ? "Admin unlocked" : "Admin unlocked locally");
+    } catch (error) {
+      setAdminPasswordError(error.message || "Incorrect password");
     }
-
-    setAdminPasswordError("Incorrect password");
   }
 
-  function lockAdmin() {
-    if (!ADMIN_PASSWORD) return;
+  async function lockAdmin() {
+    if (!adminAuth.enabled) return;
+    await lockAdminSession();
     setAdminUnlocked(false);
     setAdminHidden(false);
-    try {
-      globalThis.sessionStorage?.removeItem(ADMIN_UNLOCK_KEY);
-    } catch {
-      // Ignore sessionStorage failures.
-    }
+    setAdminPasswordError("");
+    setNotice("Admin locked");
   }
 
   return (
@@ -942,11 +959,27 @@ function App() {
       {adminHidden && (
         <button className="show-admin-button" onClick={() => setAdminHidden(false)}>
           <PanelRightOpen size={17} />
-          {adminUnlocked || !ADMIN_PASSWORD ? "Show admin" : "Admin"}
+          {adminUnlocked || !adminAuth.enabled ? "Show admin" : "Admin"}
         </button>
       )}
 
-      {!adminHidden && !adminUnlocked && ADMIN_PASSWORD && (
+      {!adminHidden && adminAuth.loading && (
+        <aside className="admin-panel admin-lock-panel" aria-label="Admin loading">
+          <div className="admin-heading">
+            <div>
+              <p className="admin-kicker">Admin Studio</p>
+              <h1>Checking access</h1>
+            </div>
+          </div>
+          <div className="panel-scroll">
+            <div className="tool-card">
+              <p>Loading admin access and backend status.</p>
+            </div>
+          </div>
+        </aside>
+      )}
+
+      {!adminHidden && !adminAuth.loading && !adminUnlocked && adminAuth.enabled && (
         <aside className="admin-panel admin-lock-panel" aria-label="Admin login">
           <div className="admin-heading">
             <div>
@@ -977,7 +1010,7 @@ function App() {
         </aside>
       )}
 
-      {!adminHidden && adminUnlocked && (
+      {!adminHidden && !adminAuth.loading && adminUnlocked && (
         <aside className="admin-panel" aria-label="Portfolio admin panel">
         <div className="admin-heading">
           <div>
@@ -989,7 +1022,7 @@ function App() {
               <Save size={14} />
               {notice}
             </span>
-            {ADMIN_PASSWORD && (
+            {adminAuth.enabled && (
               <button className="lock-admin-button" onClick={lockAdmin}>
                 Lock
               </button>
