@@ -83,19 +83,19 @@ const revTheme = {
 
 const legacyStarterIdentity = {
   meta: {
-    name: "Rev",
-    role: "3D Generalist",
-    location: "Visuals by Rev",
-    email: "visualsbyrev@gmail.com",
-    availability: "Available for select 3D collaborations",
+    name: "Maya Chen",
+    role: "Independent Product Designer",
+    location: "Austin, Texas",
+    email: "hello@mayachen.studio",
+    availability: "Available for select 2026 collaborations",
   },
   footer: {
     eyebrow: "Now booking",
-    title: "Let's build something with depth.",
-    body: "For key art, loops, motion pieces, product renders, or atmosphere-heavy visuals, send the brief and the mood you want to hit.",
+    title: "Let's build something memorable.",
+    body: "Use this footer as a final call-to-action, copyright area, or closing note.",
     ctaLabel: "Email me",
-    ctaHref: "mailto:visualsbyrev@gmail.com",
-    note: "© 2026 Rev. All rights reserved.",
+    ctaHref: "mailto:hello@mayachen.studio",
+    note: "Copyright 2026 Maya Chen. All rights reserved.",
   },
   hero: {
     eyebrow: "Portfolio Studio",
@@ -120,20 +120,20 @@ const legacyStarterIdentity = {
 
 const defaultPortfolio = {
   meta: {
-    name: "Maya Chen",
-    role: "Independent Product Designer",
-    location: "Austin, Texas",
-    email: "hello@mayachen.studio",
-    availability: "Available for select 2026 collaborations",
+    name: "Rev",
+    role: "3D Generalist",
+    location: "Visuals by Rev",
+    email: "visualsbyrev@gmail.com",
+    availability: "Available for select 3D collaborations",
   },
   footer: {
     visible: true,
     eyebrow: "Now booking",
-    title: "Let's build something memorable.",
-    body: "Use this footer as a final call-to-action, copyright area, or closing note.",
+    title: "Let's build something with depth.",
+    body: "For key art, loops, motion pieces, product renders, or atmosphere-heavy visuals, send the brief and the mood you want to hit.",
     ctaLabel: "Email me",
-    ctaHref: "mailto:hello@mayachen.studio",
-    note: "© 2026 Maya Chen. All rights reserved.",
+    ctaHref: "mailto:visualsbyrev@gmail.com",
+    note: "Copyright 2026 Rev. All rights reserved.",
   },
   header: {
     visible: true,
@@ -397,8 +397,8 @@ const defaultPortfolio = {
       type: "marquee",
       visible: true,
       eyebrow: "Ticker",
-      title: "ASHTROS",
-      body: "ASHTROS",
+      title: "REV",
+      body: "REV",
       layout: "marquee",
       settings: {
         minHeight: 78,
@@ -410,8 +410,8 @@ const defaultPortfolio = {
         backgroundMode: "plain",
         cardStyle: "solid",
         mediaFit: "cover",
-        accentColor: "#f35a12",
-        backgroundColor: "#f35a12",
+        accentColor: "#8f3dff",
+        backgroundColor: "#8f3dff",
         marqueeSpeed: 24,
         marqueeDirection: "left",
         marqueeGap: 52,
@@ -422,9 +422,9 @@ const defaultPortfolio = {
       ctaLabel: "",
       ctaHref: "",
       items: [
-        { id: "marquee-1", label: "ASHTROS", value: "ASHTROS" },
-        { id: "marquee-2", label: "ASHTROS", value: "ASHTROS" },
-        { id: "marquee-3", label: "ASHTROS", value: "ASHTROS" },
+        { id: "marquee-1", label: "REV", value: "REV" },
+        { id: "marquee-2", label: "VISUALS BY REV", value: "VISUALS BY REV" },
+        { id: "marquee-3", label: "3D GENERALIST", value: "3D GENERALIST" },
       ],
     },
     {
@@ -558,10 +558,48 @@ function maybeReplaceLegacyField(currentValue, legacyValue, nextValue) {
   return currentValue === legacyValue ? nextValue : currentValue;
 }
 
+const starterTextReplacements = [
+  ["Maya Chen", "Rev"],
+  ["Maya gave", "Rev gave"],
+  ["Maya", "Rev"],
+  ["Independent Product Designer", "3D Generalist"],
+  ["hello@mayachen.studio", "visualsbyrev@gmail.com"],
+  ["Austin, Texas", "Visuals by Rev"],
+  ["Portfolio Studio", "Visuals by Rev"],
+  ["ASHTROS", "REV"],
+  ["Available for select 2026 collaborations", "Available for select 3D collaborations"],
+  ["Let's build something memorable.", "Let's build something with depth."],
+  ["Use this footer as a final call-to-action, copyright area, or closing note.", "For key art, loops, motion pieces, product renders, or atmosphere-heavy visuals, send the brief and the mood you want to hit."],
+  ["Have a sharp problem or strange idea?", "Need a bold visual, loop, render, or world built out?"],
+  ["Send a note with the outcome you want, the timeline, and what has already been tried.", "Send the vibe, scope, references, and deadline, and I'll turn it into something cinematic and clean."],
+];
+
+function applyStarterTextReplacements(value) {
+  if (typeof value === "string") {
+    return starterTextReplacements.reduce(
+      (current, [from, to]) => current.replaceAll(from, to),
+      value,
+    );
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => applyStarterTextReplacements(entry));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, applyStarterTextReplacements(entry)]),
+    );
+  }
+
+  return value;
+}
+
 function refreshStarterBranding(portfolio) {
-  const next = clonePortfolio(portfolio);
+  const next = applyStarterTextReplacements(clonePortfolio(portfolio));
   const starterHero = defaultPortfolio.sections.find((section) => section.id === "hero");
   const starterContact = defaultPortfolio.sections.find((section) => section.id === "contact");
+  const starterMarquee = defaultPortfolio.sections.find((section) => section.id === "marquee");
 
   next.meta = {
     ...next.meta,
@@ -629,8 +667,23 @@ function refreshStarterBranding(portfolio) {
         body: maybeReplaceLegacyField(section.body, legacyStarterIdentity.contact.body, starterContact.body),
         ctaLabel: maybeReplaceLegacyField(section.ctaLabel, legacyStarterIdentity.contact.ctaLabel, starterContact.ctaLabel),
         ctaHref: maybeReplaceLegacyField(section.ctaHref, legacyStarterIdentity.contact.ctaHref, starterContact.ctaHref),
+        settings: section.settings?.backgroundMode === "plain" && section.settings?.cardStyle === "glass"
+          ? { ...section.settings, ...starterContact.settings }
+          : section.settings,
         items,
       };
+    }
+
+    if ((section.id === "marquee" || section.type === "marquee") && starterMarquee) {
+      const looksLikeLegacyMarquee = section.settings?.backgroundColor === "#f35a12"
+        || section.settings?.accentColor === "#f35a12"
+        || section.title?.includes("ASHTROS")
+        || section.body?.includes("ASHTROS")
+        || section.items?.some((item) => item.label?.includes("ASHTROS") || item.value?.includes("ASHTROS"));
+
+      if (looksLikeLegacyMarquee) {
+        return clonePortfolio(starterMarquee);
+      }
     }
 
     return section;
