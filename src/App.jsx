@@ -977,7 +977,8 @@ function App() {
         </aside>
       )}
 
-      <aside className="admin-panel" aria-label="Portfolio admin panel" aria-hidden={adminHidden || !adminUnlocked}>
+      {!adminHidden && adminUnlocked && (
+        <aside className="admin-panel" aria-label="Portfolio admin panel">
         <div className="admin-heading">
           <div>
             <p className="admin-kicker">Admin Studio</p>
@@ -1065,7 +1066,8 @@ function App() {
             onReset={resetConfig}
           />
         )}
-      </aside>
+        </aside>
+      )}
     </main>
   );
 }
