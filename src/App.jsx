@@ -59,6 +59,65 @@ const fontChoices = [
   { label: "Unbounded", value: "'Unbounded', sans-serif" },
 ];
 
+const legacyStarterTheme = {
+  background: "#f5efe4",
+  surface: "#fffaf0",
+  surfaceAlt: "#17120d",
+  text: "#17120d",
+  muted: "#705f4f",
+  primary: "#d95f30",
+  secondary: "#256b5f",
+  accent: "#f4bf4f",
+};
+
+const revTheme = {
+  background: "#0f0817",
+  surface: "#171022",
+  surfaceAlt: "#09050f",
+  text: "#f4efff",
+  muted: "#b6a6d2",
+  primary: "#8f3dff",
+  secondary: "#5f2dbd",
+  accent: "#d28cff",
+};
+
+const legacyStarterIdentity = {
+  meta: {
+    name: "Rev",
+    role: "3D Generalist",
+    location: "Visuals by Rev",
+    email: "visualsbyrev@gmail.com",
+    availability: "Available for select 3D collaborations",
+  },
+  footer: {
+    eyebrow: "Now booking",
+    title: "Let's build something with depth.",
+    body: "For key art, loops, motion pieces, product renders, or atmosphere-heavy visuals, send the brief and the mood you want to hit.",
+    ctaLabel: "Email me",
+    ctaHref: "mailto:visualsbyrev@gmail.com",
+    note: "© 2026 Rev. All rights reserved.",
+  },
+  hero: {
+    eyebrow: "Portfolio Studio",
+    title: "Designing products that feel vivid, useful, and alive.",
+    body:
+      "I partner with early teams to turn scattered ideas into memorable digital products, brand systems, and launch-ready experiences.",
+    ctaLabel: "Start a project",
+    ctaHref: "mailto:hello@mayachen.studio",
+  },
+  contact: {
+    eyebrow: "Contact",
+    title: "Have a sharp problem or strange idea?",
+    body: "Send a note with the outcome you want, the timeline, and what has already been tried.",
+    ctaLabel: "Email me",
+    ctaHref: "mailto:hello@mayachen.studio",
+    items: [
+      { label: "Email", value: "hello@mayachen.studio" },
+      { label: "Location", value: "Austin, Texas" },
+    ],
+  },
+};
+
 const defaultPortfolio = {
   meta: {
     name: "Maya Chen",
@@ -101,14 +160,14 @@ const defaultPortfolio = {
     uppercaseNav: true,
   },
   theme: {
-    background: "#f5efe4",
-    surface: "#fffaf0",
-    surfaceAlt: "#17120d",
-    text: "#17120d",
-    muted: "#705f4f",
-    primary: "#d95f30",
-    secondary: "#256b5f",
-    accent: "#f4bf4f",
+    background: "#0f0817",
+    surface: "#171022",
+    surfaceAlt: "#09050f",
+    text: "#f4efff",
+    muted: "#b6a6d2",
+    primary: "#8f3dff",
+    secondary: "#5f2dbd",
+    accent: "#d28cff",
     headingFont: "'Fraunces', serif",
     bodyFont: "'Manrope', sans-serif",
     radius: 28,
@@ -131,10 +190,10 @@ const defaultPortfolio = {
       id: "hero",
       type: "hero",
       visible: true,
-      eyebrow: "Portfolio Studio",
-      title: "Designing products that feel vivid, useful, and alive.",
+      eyebrow: "Visuals by Rev",
+      title: "Building 3D visuals with depth, motion, and atmosphere.",
       body:
-        "I partner with early teams to turn scattered ideas into memorable digital products, brand systems, and launch-ready experiences.",
+        "I create striking stills, loops, motion pieces, and polished scenes for brands, artists, products, and campaigns that need a sharper visual presence.",
       layout: "spotlight",
       settings: {
         minHeight: 610,
@@ -148,7 +207,7 @@ const defaultPortfolio = {
       },
       media: null,
       ctaLabel: "Start a project",
-      ctaHref: "mailto:hello@mayachen.studio",
+      ctaHref: "mailto:visualsbyrev@gmail.com",
       items: [
         { id: "hero-chip-1", label: "Product Strategy", value: "0-1 launches" },
         { id: "hero-chip-2", label: "Visual Systems", value: "Brand-led UI" },
@@ -373,8 +432,8 @@ const defaultPortfolio = {
       type: "contact",
       visible: true,
       eyebrow: "Contact",
-      title: "Have a sharp problem or strange idea?",
-      body: "Send a note with the outcome you want, the timeline, and what has already been tried.",
+      title: "Need a bold visual, loop, render, or world built out?",
+      body: "Send the vibe, scope, references, and deadline, and I’ll turn it into something cinematic and clean.",
       layout: "banner",
       settings: {
         minHeight: 320,
@@ -387,10 +446,10 @@ const defaultPortfolio = {
         mediaFit: "cover",
       },
       ctaLabel: "Email me",
-      ctaHref: "mailto:hello@mayachen.studio",
+      ctaHref: "mailto:visualsbyrev@gmail.com",
       items: [
-        { id: "contact-1", label: "Email", value: "hello@mayachen.studio" },
-        { id: "contact-2", label: "Location", value: "Austin, Texas" },
+        { id: "contact-1", label: "Email", value: "visualsbyrev@gmail.com" },
+        { id: "contact-2", label: "Brand", value: "Visuals by Rev" },
       ],
     },
   ],
@@ -447,7 +506,7 @@ function normalizePortfolio(value) {
     ? value.sections
     : defaultPortfolio.sections;
 
-  return {
+  return refreshStarterBranding({
     meta,
     footer,
     header,
@@ -478,7 +537,7 @@ function normalizePortfolio(value) {
           }))
         : [],
     })),
-  };
+  });
 }
 
 function normalizeMedia(media) {
@@ -489,6 +548,95 @@ function normalizeMedia(media) {
     name: media.name || "Imported media",
     alt: media.alt || "",
   };
+}
+
+function matchesLegacyTheme(theme) {
+  return Object.entries(legacyStarterTheme).every(([key, value]) => theme?.[key] === value);
+}
+
+function maybeReplaceLegacyField(currentValue, legacyValue, nextValue) {
+  return currentValue === legacyValue ? nextValue : currentValue;
+}
+
+function refreshStarterBranding(portfolio) {
+  const next = clonePortfolio(portfolio);
+  const starterHero = defaultPortfolio.sections.find((section) => section.id === "hero");
+  const starterContact = defaultPortfolio.sections.find((section) => section.id === "contact");
+
+  next.meta = {
+    ...next.meta,
+    name: maybeReplaceLegacyField(next.meta.name, legacyStarterIdentity.meta.name, defaultPortfolio.meta.name),
+    role: maybeReplaceLegacyField(next.meta.role, legacyStarterIdentity.meta.role, defaultPortfolio.meta.role),
+    location: maybeReplaceLegacyField(next.meta.location, legacyStarterIdentity.meta.location, defaultPortfolio.meta.location),
+    email: maybeReplaceLegacyField(next.meta.email, legacyStarterIdentity.meta.email, defaultPortfolio.meta.email),
+    availability: maybeReplaceLegacyField(next.meta.availability, legacyStarterIdentity.meta.availability, defaultPortfolio.meta.availability),
+  };
+
+  next.footer = {
+    ...next.footer,
+    eyebrow: maybeReplaceLegacyField(next.footer.eyebrow, legacyStarterIdentity.footer.eyebrow, defaultPortfolio.footer.eyebrow),
+    title: maybeReplaceLegacyField(next.footer.title, legacyStarterIdentity.footer.title, defaultPortfolio.footer.title),
+    body: maybeReplaceLegacyField(next.footer.body, legacyStarterIdentity.footer.body, defaultPortfolio.footer.body),
+    ctaLabel: maybeReplaceLegacyField(next.footer.ctaLabel, legacyStarterIdentity.footer.ctaLabel, defaultPortfolio.footer.ctaLabel),
+    ctaHref: maybeReplaceLegacyField(next.footer.ctaHref, legacyStarterIdentity.footer.ctaHref, defaultPortfolio.footer.ctaHref),
+    note: maybeReplaceLegacyField(next.footer.note, legacyStarterIdentity.footer.note, defaultPortfolio.footer.note),
+  };
+
+  if (matchesLegacyTheme(next.theme)) {
+    next.theme = {
+      ...next.theme,
+      ...revTheme,
+    };
+  }
+
+  next.sections = next.sections.map((section) => {
+    if ((section.id === "hero" || section.type === "hero") && starterHero) {
+      return {
+        ...section,
+        eyebrow: maybeReplaceLegacyField(section.eyebrow, legacyStarterIdentity.hero.eyebrow, starterHero.eyebrow),
+        title: maybeReplaceLegacyField(section.title, legacyStarterIdentity.hero.title, starterHero.title),
+        body: maybeReplaceLegacyField(section.body, legacyStarterIdentity.hero.body, starterHero.body),
+        ctaLabel: maybeReplaceLegacyField(section.ctaLabel, legacyStarterIdentity.hero.ctaLabel, starterHero.ctaLabel),
+        ctaHref: maybeReplaceLegacyField(section.ctaHref, legacyStarterIdentity.hero.ctaHref, starterHero.ctaHref),
+      };
+    }
+
+    if ((section.id === "contact" || section.type === "contact") && starterContact) {
+      const items = Array.isArray(section.items) ? [...section.items] : [];
+      const firstItem = items[0];
+      const secondItem = items[1];
+
+      if (firstItem) {
+        items[0] = {
+          ...firstItem,
+          label: maybeReplaceLegacyField(firstItem.label, legacyStarterIdentity.contact.items[0].label, starterContact.items[0].label),
+          value: maybeReplaceLegacyField(firstItem.value, legacyStarterIdentity.contact.items[0].value, starterContact.items[0].value),
+        };
+      }
+
+      if (secondItem) {
+        items[1] = {
+          ...secondItem,
+          label: maybeReplaceLegacyField(secondItem.label, legacyStarterIdentity.contact.items[1].label, starterContact.items[1].label),
+          value: maybeReplaceLegacyField(secondItem.value, legacyStarterIdentity.contact.items[1].value, starterContact.items[1].value),
+        };
+      }
+
+      return {
+        ...section,
+        eyebrow: maybeReplaceLegacyField(section.eyebrow, legacyStarterIdentity.contact.eyebrow, starterContact.eyebrow),
+        title: maybeReplaceLegacyField(section.title, legacyStarterIdentity.contact.title, starterContact.title),
+        body: maybeReplaceLegacyField(section.body, legacyStarterIdentity.contact.body, starterContact.body),
+        ctaLabel: maybeReplaceLegacyField(section.ctaLabel, legacyStarterIdentity.contact.ctaLabel, starterContact.ctaLabel),
+        ctaHref: maybeReplaceLegacyField(section.ctaHref, legacyStarterIdentity.contact.ctaHref, starterContact.ctaHref),
+        items,
+      };
+    }
+
+    return section;
+  });
+
+  return next;
 }
 
 function createId(prefix = "item") {
